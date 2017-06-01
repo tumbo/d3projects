@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.dot {
+  stroke-width: 1.0px;
+  fill: green;
+}
+
+rect.viewport {
+  stroke: #fff;
+  stroke-width: 1px;
+  
+}
+
+
+
+</style>
+<body>
+  <div id="graph"></div>
+  
+
+<script src="../resources/d3/d3.min.js"></script>
+<script>
+
+/* 100 points created, and classified into one of 4 groups (focal points)
+   a 5th focal point serves as the center, and collects a 5th group of nodes
+   upon each iterval, nodes are randomly assigned to a different group. if it happens
+   to be the center group, they stay there. there's something like a 1/5 chance
+   of getting assigned here. Now, only the nodes that are not in this group
+   need adjusted, so filter out center one
+
+
+   FORCE DIRECTED LAYOUT
+   Provides a mechanism for visualizing data with nodes and links that respond in a way
+   which feels like there's a physical connection, or gravitational pull on the elements.
+
+   We can have possibly two data sets, but really only the nodes are required
+
+   Setup your force layout, and you get a bunch of defaults around gravity, fricion, charge
+
+   You need to specify a size though, so the force layout knows what it has to work with.
+
+   Then you pass the nodes, but you must call force.start() to "reheat" the layout simulation. It's interesting, because normally in layouts, you would call the layout once you've given enough parms for it to do its thing. So, instead of force(data), we have force.start(). Possibly because there are two potential data inputs
+
+   Once done, the nodes data has had several fields appended...
+   x - current x
+   y - current y
+   px - previous x
+   py - previous y
+   weight - number of assoicated links, if applicable
+   fixed - boolean indicating if node position is locked
+
+   running start() on initializing the force layout doesn't do much if the nodes()
+   haven't been defined. After defining nodes, then you need to run start() again
+
+   Each node object's x and y values are updated turning the tick()
+
+   tick is one iteration of the force simulation. The simulation is updating data,
+   but we need to re-express that data via .attr() and .style() or whatever. Thus, it's ideal to place the expression functionality inside the tick() method
+
+   Note, default gravity of .1 results in center being focal point
+
+   tick is all about tying into the simulation.
+
+   Notice how we don't use d3 transitions here. The force tick effectively does this by running hundreds of times during the simulation.
+
+   The timing of the simulation uses a parameter, alpha. alpha starts at 0.1
+   it decreases slightly till reaching .005, then that simulation is over. You can run another by changing alpha, doing force.start()
+
+   Also, if you attached a force.drag() to the svg nodes, this reheats or restarts the simulation... force.start().
+
+  so to recap basics... define force, and at least the size using viewport dimensions, also define data expression code inside "tick" and tell the force layout about it, then pass in the nodes, run the force start, and the nodes will render in the middle in a circle.
+
+
+
+
+   */
+
+var width = 900,
+    height = 800;
+
+var fill = d3.scale.category10();
+
+// ok, something different here... foci array for each focus
+var nodes = d3.range(300).map(function(d) { return {index: d} }),
+    focus = [{x: width/4, y: height/4},{x: width/1.65, y: height/1.65}];
+
+nodes.forEach(function(d) {
+  // assign group
+  d.grp = ~~(Math.random()*focus.length);
+})
+
+
+var svg = d3.select("#graph").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  svg.append('rect')
+     .attr('class','viewport')
+     .attr({'width': width, 'height':height});
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links([])
+    .friction(.7) // velocity decay 0 freezes everything, 1 is frictionless
+    .charge(-20)
+    .gravity(0)
+    .size([width, height])
+    .on("tick", tick)
+    .start();
+
+var node = svg.selectAll("circle").data(nodes).enter()
+           .append('circle')
+           .attr('class','dot')
+           .attr('r',4)
+           .call(force.drag);
+
+
+
+function tick(e) {
+
+  console.log('tick ran with ',e);  
+  var k = .1 * e.alpha; // k is 10% of current temp, so it's getting smaller
+  // e cools slower over time... the rate of decrease decreases itself
+
+  nodes.forEach(function(o,i) {
+    o.y += (focus[o.grp].y - o.y) * k; // set each node's y pos to:
+    o.x += (focus[o.grp].x - o.x) * k; // set each node's y pos to:
+  })
+  
+  // nodes not yet stable
+  
+    node
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .style('fill', function(d) { return fill(d.grp)});
+  
+  
+ }
+
+var foo = setInterval(function() {
+
+  // 
+  force.start();
+
+  // move group one into group two one at a time
+
+  nodes.filter(function(d){ return d.grp===0})[~~Math.random()*focus.length].grp = 1;
+
+  if(nodes.filter(function(d){ return d.grp===0}).length===0){ clearInterval(foo) }
+
+
+},500)
+
+
+
+</script>

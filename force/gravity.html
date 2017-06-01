@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.dot {
+  stroke-width: 1.0px;
+}
+
+rect.viewport {
+  stroke: #fff;
+  stroke-width: 1px;
+  fill: #121212;
+}
+
+
+
+</style>
+<body>
+  <div id="graph"></div>
+  
+
+<script src="../resources/d3/d3.min.js"></script>
+<script>
+
+/* 100 points created, and classified into one of 4 groups (focal points)
+   a 5th focal point serves as the center, and collects a 5th group of nodes
+   upon each iterval, nodes are randomly assigned to a different group. if it happens
+   to be the center group, they stay there. there's something like a 1/5 chance
+   of getting assigned here. Now, only the nodes that are not in this group
+   need adjusted, so filter out center one
+
+   */
+
+var width = 900,
+    height = 500,
+    prob = .20,
+    perc = 0;
+
+var fill = d3.scale.category10();
+
+// ok, something different here... foci array for each focus
+var nodes = d3.range(25).map(function(d) { return {index: d} }),
+    // foci = [{x: 100, y: 100}, {x: 750, y: 100}, {x: 100, y: 400},{x: 750, y: 400}], 
+    center = {x: 400, y: 225};
+
+
+var svg = d3.select("#graph").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  svg.append('rect')
+     .attr('class','viewport')
+     .attr({'width': width, 'height':height});
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links([])
+    .gravity(0)
+    .friction(.85)
+    .size([width, height])
+    .on("tick", tick)
+    .start();
+
+var node = svg.selectAll("circle").data(nodes).enter()
+           .append('circle')
+           .attr('class','dot')
+           .attr('r',6)
+           .call(force.drag);
+
+svg.append('text').attr('id', 'stat')
+       .attr('x', center.x - 150)
+       .attr('y', center.y + 175)
+       .style('font-size','50px') 
+       .style('stroke','#fff')
+       .style('fill', '#fff')
+       .style('shape-rendering','crispEdges')      
+       .text('force gravity: ' +force.gravity());
+
+
+
+// tick is going to run a bunch of times, but we can't put the control mechanism
+// in there for changing the node groups because we don't know how long that will take
+// and the iterations of tick of a finite life as it cools
+/*var foo = setInterval(function() {
+
+  if(nodes.filter(function(d) { return d.grp === foci.length }).length === 100) {
+    clearInterval(foo);
+  }
+
+  force.start();
+  // loop through nodes not stable (!=foci.length) and reassign group, allow for some to get assigned to equil point
+  nodes.filter(function(d) { return d.grp < foci.length }).forEach(function(o) {
+    // give it a shot to become stable
+    if (Math.random() <= prob) { 
+      // console.log(nodes.filter(function(d) { return d.grp === foci.length }).length);
+      o.grp = foci.length 
+    }
+    else {
+      // reassign grp using random number gen    
+      o.grp = ~~(Math.random() * foci.length);
+    }     
+    
+
+  })
+
+  perc = nodes.filter(function(d) { return d.grp === foci.length }).length;
+  d3.select('#stat').text(perc + '% Stable')
+
+ },1000)*/
+
+// tick contains what happens in each iteration of the force layout
+// e looks like this ... {type: "tick", alpha: 0.035874829768189224}
+
+// this is going to run hundreds of times as part of the simulation
+// force layout is continually updating node x and y values
+// e is spit out in case you want to do something with it
+function tick(e) {
+
+  console.log('tick ran with ',e);  
+  var k = .1 * e.alpha; // k is 10% of current temp, so it's getting smaller
+  // e cools slower over time... the rate of decrease decreases itself
+  
+  // nodes not yet stable
+  nodes.forEach(function(o, i) {
+    
+      o.y += (center.y - o.y) * k; // set each node's y pos to (foci point - object's current y) * derived temp
+      o.x += (center.x - o.x) * k;
+        
+  });
+
+
+  node
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .style('fill', function(d) { return fill(d.grp) });
+}
+
+var forceDir = .01; // direction is add one, increase or attract
+var foo = setInterval(function() {
+
+  if(force.gravity() > .3) {
+    forceDir = -.01;
+  } else if(force.gravity() < -.1) {
+    forceDir = .01;
+  }
+  force.start();
+  // increase charge by 1
+  force.gravity(force.gravity() + forceDir);
+
+  d3.select('#stat').text('force gravity: ' +Math.round(force.gravity() * 100) / 100);
+},500)
+
+
+
+
+
+</script>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<script src="../resources/d3/d3.min.js"></script>
+<script>
+
+/* this example defines points in the svg viewport that serve as focal points
+   an interval runs which pushes a node into the node object array, and randomly
+   assigns it an id that assigns it to one of the focal points
+
+   The tick() then runs through the object node array each pass, and sets the position of each node
+   equal to a number which is factor of the diff b/t where they currently are, so the nodes aren't 
+   pulled by some force, they're incrementally moved closer to the focal point based on a process
+   which uses a temp factor in a state of antropy
+
+   It seems force layouts avoid calcuating things so nodes sit on top of one another
+
+  we can use the concepts here to build the movement of things from one status to another, for example,
+  the daily routine example of 1000 people. Let's say you have a day... at home, wakeup, then go to work
+  then the gym, then out to dinner, then maybe back home. If you had a node representing each person's 
+  daily routine by 30 min increm say, you could let each interval represent that half hour block
+
+  the interval then re-assigns the node to a focal point representing location, and when the simul runs,
+  the points move from one point to another 
+
+   */
+
+var width = 960,
+    height = 500;
+
+var fill = d3.scale.category10();
+
+// ok, something different here... foci array for each focus
+var nodes = [],
+    foci = [{x: 100, y: 100}, {x: 300, y: 100}, {x: 100, y: 400},{x: 300, y: 400}];
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links([])
+    .gravity(0)
+    .size([width, height])
+    .on("tick", tick);
+
+var node = svg.selectAll("circle");
+
+// tick contains what happens in each iteration of the force layout
+// e looks like this ... {type: "tick", alpha: 0.035874829768189224}
+function tick(e) {
+
+  console.log('tick ran with ',e);  
+  var k = .1 * e.alpha; // k is 10% of current temp, so it's getting smaller
+  // e cools slower over time... the rate of decrease decreases itself
+
+  // Push nodes toward their designated focus.
+  // ok, what is o here?  node object {id: 2, index: 0, weight: 0, x: 699.999999969278, y: 399.999999997935…}
+  
+  nodes.forEach(function(o, i) {
+    o.y += (foci[o.id].y - o.y) * k; // set each node's y pos to (foci point - object's current y) * derived temp
+    o.x += (foci[o.id].x - o.x) * k;
+  });
+
+  node
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+}
+
+// interval adds node to node object array via array function
+// I think random() results
+foo = setInterval(function(){
+  // this affectively assigns a node to one of the foci
+  nodes.push({id: ~~(Math.random() * foci.length)}); // this randomly assigns either 0, 1 or 2 to use in forEach
+  // start the force again
+  force.start();
+
+  // data binding/update selection
+  node = node.data(nodes);
+
+  // enter contains new node
+  node.enter().append("circle")
+      .attr("class", "node")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .attr("r", 8)
+      .style("fill", function(d) { return fill(d.id); })
+      .style("stroke", function(d) { return d3.rgb(fill(d.id)).darker(2); })
+      .call(force.drag);
+}, 500);
+
+</script>
