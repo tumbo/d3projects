@@ -14,13 +14,13 @@
 
 </style>
 <body>
-<script src="../resources/d3/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
 <script>
 
 /*
   force layout
 
-  charge - 
+  charge -
   nodes - where you pass the nodes (data.nodes from d3 request likely)
   links - links for layout
   size - viewport dimensions array [width,height]. Note, The center of gravity is simply [ x / 2, y / 2 ]
@@ -29,7 +29,7 @@
   linkDistance - sets the target distance between linked nodes (default 20) Can be function too
   charge - default is -30, neg values result in repulsion, pos attract
   gravity - default is .1
-  theta - 
+  theta -
   alpha - layout temp of force layout.. it "cools" as the simulation winds down. you can restart the simul with force.resume(), or set
           alpha to .1 to re-initialize
   start - after assigning the nodes and links, and called everytime nodes or links change
@@ -52,7 +52,7 @@ var color = d3.scale.category20();
 var force = d3.layout.force()
     .charge(-70)
     .gravity(.05)
-    .linkDistance(30)  
+    .linkDistance(30)
     .size([width, height]);
 
 var svg = d3.select("body").append("svg")

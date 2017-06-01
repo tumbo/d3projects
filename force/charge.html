@@ -17,9 +17,9 @@ rect.viewport {
 </style>
 <body>
   <div id="graph"></div>
-  
 
-<script src="../resources/d3/d3.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
 <script>
 
 /* 100 points created, and classified into one of 4 groups (focal points)
@@ -40,7 +40,7 @@ var fill = d3.scale.category10();
 
 // ok, something different here... foci array for each focus
 var nodes = d3.range(25).map(function(d) { return {index: d} }),
-    // foci = [{x: 100, y: 100}, {x: 750, y: 100}, {x: 100, y: 400},{x: 750, y: 400}], 
+    // foci = [{x: 100, y: 100}, {x: 750, y: 100}, {x: 100, y: 400},{x: 750, y: 400}],
     center = {x: 400, y: 225};
 
 
@@ -70,10 +70,10 @@ var node = svg.selectAll("circle").data(nodes).enter()
 svg.append('text').attr('id', 'stat')
        .attr('x', center.x - 150)
        .attr('y', center.y + 175)
-       .style('font-size','50px') 
+       .style('font-size','50px')
        .style('stroke','#fff')
        .style('fill', '#fff')
-       .style('shape-rendering','crispEdges')      
+       .style('shape-rendering','crispEdges')
        .text('force charge: ' +force.charge());
 
 
@@ -91,15 +91,15 @@ svg.append('text').attr('id', 'stat')
   // loop through nodes not stable (!=foci.length) and reassign group, allow for some to get assigned to equil point
   nodes.filter(function(d) { return d.grp < foci.length }).forEach(function(o) {
     // give it a shot to become stable
-    if (Math.random() <= prob) { 
+    if (Math.random() <= prob) {
       // console.log(nodes.filter(function(d) { return d.grp === foci.length }).length);
-      o.grp = foci.length 
+      o.grp = foci.length
     }
     else {
-      // reassign grp using random number gen    
+      // reassign grp using random number gen
       o.grp = ~~(Math.random() * foci.length);
-    }     
-    
+    }
+
 
   })
 
@@ -116,16 +116,16 @@ svg.append('text').attr('id', 'stat')
 // e is spit out in case you want to do something with it
 function tick(e) {
 
-  console.log('tick ran with ',e);  
+  console.log('tick ran with ',e);
   var k = .1 * e.alpha; // k is 10% of current temp, so it's getting smaller
   // e cools slower over time... the rate of decrease decreases itself
-  
+
   // nodes not yet stable
   nodes.forEach(function(o, i) {
-    
+
       o.y += (center.y - o.y) * k; // set each node's y pos to (foci point - object's current y) * derived temp
       o.x += (center.x - o.x) * k;
-        
+
   });
 
 

@@ -8,7 +8,7 @@
 
 </style>
 <body>
-<script src="../resources/d3/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
 <script>
 
 /* this example defines points in the svg viewport that serve as focal points
@@ -16,7 +16,7 @@
    assigns it an id that assigns it to one of the focal points
 
    The tick() then runs through the object node array each pass, and sets the position of each node
-   equal to a number which is factor of the diff b/t where they currently are, so the nodes aren't 
+   equal to a number which is factor of the diff b/t where they currently are, so the nodes aren't
    pulled by some force, they're incrementally moved closer to the focal point based on a process
    which uses a temp factor in a state of antropy
 
@@ -24,11 +24,11 @@
 
   we can use the concepts here to build the movement of things from one status to another, for example,
   the daily routine example of 1000 people. Let's say you have a day... at home, wakeup, then go to work
-  then the gym, then out to dinner, then maybe back home. If you had a node representing each person's 
+  then the gym, then out to dinner, then maybe back home. If you had a node representing each person's
   daily routine by 30 min increm say, you could let each interval represent that half hour block
 
   the interval then re-assigns the node to a focal point representing location, and when the simul runs,
-  the points move from one point to another 
+  the points move from one point to another
 
    */
 
@@ -58,13 +58,13 @@ var node = svg.selectAll("circle");
 // e looks like this ... {type: "tick", alpha: 0.035874829768189224}
 function tick(e) {
 
-  console.log('tick ran with ',e);  
+  console.log('tick ran with ',e);
   var k = .1 * e.alpha; // k is 10% of current temp, so it's getting smaller
   // e cools slower over time... the rate of decrease decreases itself
 
   // Push nodes toward their designated focus.
   // ok, what is o here?  node object {id: 2, index: 0, weight: 0, x: 699.999999969278, y: 399.999999997935…}
-  
+
   nodes.forEach(function(o, i) {
     o.y += (foci[o.id].y - o.y) * k; // set each node's y pos to (foci point - object's current y) * derived temp
     o.x += (foci[o.id].x - o.x) * k;

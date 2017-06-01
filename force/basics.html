@@ -10,7 +10,7 @@
 rect.viewport {
   stroke: #fff;
   stroke-width: 1px;
-  
+
 }
 
 
@@ -18,9 +18,9 @@ rect.viewport {
 </style>
 <body>
   <div id="graph"></div>
-  
 
-<script src="../resources/d3/d3.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js"></script>
 <script>
 
 /* 100 points created, and classified into one of 4 groups (focal points)
@@ -120,7 +120,7 @@ var node = svg.selectAll("circle").data(nodes).enter()
 
 function tick(e) {
 
-  console.log('tick ran with ',e);  
+  console.log('tick ran with ',e);
   var k = .1 * e.alpha; // k is 10% of current temp, so it's getting smaller
   // e cools slower over time... the rate of decrease decreases itself
 
@@ -128,20 +128,20 @@ function tick(e) {
     o.y += (focus[o.grp].y - o.y) * k; // set each node's y pos to:
     o.x += (focus[o.grp].x - o.x) * k; // set each node's y pos to:
   })
-  
+
   // nodes not yet stable
-  
+
     node
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .style('fill', function(d) { return fill(d.grp)});
-  
-  
+
+
  }
 
 var foo = setInterval(function() {
 
-  // 
+  //
   force.start();
 
   // move group one into group two one at a time
